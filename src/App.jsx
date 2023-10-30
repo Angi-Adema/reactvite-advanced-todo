@@ -1,20 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./styles.css";
 import { TodoItem } from "./TodoItem";
 
+const localStorageKey = "TODOS";
+
+const actions = {
+  ADD_TODO: "ADD_TODO",
+  UPDATE_TODO: "UPDATE_TODO",
+  TOGGLE_TODO: "TOGGLE_TODO",
+  DELETE_TODO: "DELETE_TODO",
+};
+
+function reducer(todos, { type, payload }) {
+  switch (type) {
+    case actions.ADD_TODO:
+      return [
+        ...todos,
+        { name: payload.name, completed: false, id: crypto.randomUUID() },
+      ];
+    default:
+      throw new Error(`Unhandled action type: ${type}`);
+  }
+  return state;
+}
+
 function App() {
+  // This state makes sense to stay here locally as it is entirely separate from the todos.
   const [newTodoName, setNewTodoName] = useState("");
-  const [todos, setTodos] = useState([]);
+
+  const [todos, dispatch] = useReducer(reducer, [], (initialValue) => {
+    const itemValue = localStorage.getItem(localStorageKey);
+    if (itemValue == null) return initialValue;
+
+    return JSON.parse(itemValue);
+  });
+
+  useEffect(() => {
+    localStorage.setItem(localStorageKey, JSON.stringify(todos));
+  }, [todos]);
 
   function addNewTodo() {
     if (newTodoName === "") return;
 
-    setTodos((currentTodos) => {
-      return [
-        ...currentTodos,
-        { name: newTodoName, completed: false, id: crypto.randomUUID() },
-      ];
-    });
+    dispatch({ type: actions.ADD_TODO, payload: { name: newTodoName } });
+
+    // setTodos((currentTodos) => {
+    //   return [
+    //     ...currentTodos,
+    //     { name: newTodoName, completed: false, id: crypto.randomUUID() },
+    //   ];
+    // });
     setNewTodoName("");
   }
 
