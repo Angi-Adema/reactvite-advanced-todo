@@ -1,8 +1,9 @@
-import { useEffect, useReducer, createContext } from "react";
+import { useEffect, useState, useReducer, createContext } from "react";
 import "./styles.css";
 // import { TodoItem } from "./TodoItem";
 import { NewTodoForm } from "./NewTodoForm";
 import { TodoList } from "./TodoList";
+import { TodoFilterForm } from "./TodoFilterForm";
 
 const localStorageKey = "TODOS";
 
@@ -32,12 +33,12 @@ function reducer(todos, { type, payload }) {
       return todos.filter((todo) => {
         if (todo.id !== payload.id) return { ...todo };
       });
-    // case actions.UPDATE_TODO:
-    //   return todos.map((todo) => {
-    //     if (todo.id === payload.id) return { ...todo, name: payload.name };
+    case actions.UPDATE_TODO:
+      return todos.map((todo) => {
+        if (todo.id === payload.id) return { ...todo, name: payload.name };
 
-    //     return todo;
-    //   });
+        return todo;
+      });
     default:
       throw new Error(`Unhandled action type: ${type}`);
   }
@@ -50,11 +51,21 @@ function App() {
   // Since this state is only used in addNewTodo, it makes sense to get rid of it and use refs instead. (See in NewTodoForm.jsx)
   // const [newTodoName, setNewTodoName] = useState("");
 
+  // Normally we would put this state as local as possible and in the TodoFilterForm.jsx, but in this case in order to filter our todos, we need the filter state to be in the same place as our todos state. Otherwise it will not work to do the filter.
+  const [filterName, setFilterName] = useState("");
+
+  const [hideCompletedFilter, setHideCompletedFilter] = useState(false);
+
   const [todos, dispatch] = useReducer(reducer, [], (initialValue) => {
     const itemValue = localStorage.getItem(localStorageKey);
     if (itemValue == null) return initialValue;
 
     return JSON.parse(itemValue);
+  });
+
+  const filteredTodos = todos.filter((todo) => {
+    if (hideCompletedFilter && todo.completed) return false;
+    return todo.name.includes(filterName);
   });
 
   useEffect(() => {
@@ -97,26 +108,27 @@ function App() {
     // });
   }
 
-  // function updateTodo(todoId, name) {
-  //   dispatch({ type: actions.UPDATE_TODO, payload: { id: todoId, name } });
+  function updateTodo(id, name) {
+    dispatch({ type: actions.UPDATE_TODO, payload: { id, name } });
 
-  // setTodos((currentTodos) => {
-  //   return currentTodos.map((todo) => {
-  //     if (todo.id === todoId) return { ...todo, name };
+    // setTodos((currentTodos) => {
+    //   return currentTodos.map((todo) => {
+    //     if (todo.id === todoId) return { ...todo, name };
 
-  //     return todo;
-  //   });
-  // });
-  // }
+    //     return todo;
+    //   });
+    // });
+  }
 
   return (
     <>
       <TodoContext.Provider
         value={{
-          todos,
+          todos: filteredTodos, // Changed this from "todos," since we are filtering items we want to send all the filteredTodos here rather than just all of the todos.
           addNewTodo,
           toggleTodo,
           deleteTodo,
+          updateTodo,
         }}
       >
         {/* Moved this into its own component in NewTodoForm.jsx */}
@@ -143,6 +155,12 @@ function App() {
           />
           <button onClick={addNewTodo}>Add Todo</button>
         </div> */}
+        <TodoFilterForm
+          name={filterName}
+          setName={setFilterName}
+          hideCompleted={hideCompletedFilter}
+          setHideCompleted={setHideCompletedFilter}
+        />
         <TodoList />
         <NewTodoForm /> {/* Removed addNewTodo={addNewTodo} */}
       </TodoContext.Provider>
