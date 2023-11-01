@@ -14,28 +14,28 @@ const actions = {
   DELETE_TODO: "DELETE_TODO",
 };
 
-function reducer(todos, { type, payload }) {
+function reducer(todos, { type, data }) {
   switch (type) {
     case actions.ADD_TODO:
       return [
         ...todos,
-        { name: payload.name, completed: false, id: crypto.randomUUID() },
+        { name: data.name, completed: false, id: crypto.randomUUID() },
       ];
     case actions.TOGGLE_TODO:
       return todos.map((todo) => {
-        if (todo.id === payload.id) {
-          return { ...todo, completed: payload.completed };
+        if (todo.id === data.id) {
+          return { ...todo, completed: data.completed };
         }
 
         return todo;
       });
     case actions.DELETE_TODO:
       return todos.filter((todo) => {
-        if (todo.id !== payload.id) return { ...todo };
+        if (todo.id !== data.id) return { ...todo };
       });
     case actions.UPDATE_TODO:
       return todos.map((todo) => {
-        if (todo.id === payload.id) return { ...todo, name: payload.name };
+        if (todo.id === data.id) return { ...todo, name: data.name };
 
         return todo;
       });
@@ -75,7 +75,7 @@ function App() {
   function addNewTodo(name) {
     // if (newTodoName === "") return;  (See inside NewTodoForm.jsx)
 
-    dispatch({ type: actions.ADD_TODO, payload: { name } });
+    dispatch({ type: actions.ADD_TODO, data: { name } });
 
     // setTodos((currentTodos) => {
     //   return [
@@ -89,7 +89,7 @@ function App() {
   }
 
   function toggleTodo(todoId, completed) {
-    dispatch({ type: actions.TOGGLE_TODO, payload: { id: todoId, completed } });
+    dispatch({ type: actions.TOGGLE_TODO, data: { id: todoId, completed } });
 
     // setTodos((currentTodos) => {
     //   return currentTodos.map((todo) => {
@@ -101,7 +101,7 @@ function App() {
   }
 
   function deleteTodo(todoId) {
-    dispatch({ type: actions.DELETE_TODO, payload: { id: todoId } });
+    dispatch({ type: actions.DELETE_TODO, data: { id: todoId } });
 
     // setTodos((currentTodos) => {
     //   return currentTodos.filter((todo) => todo.id !== todoId);
@@ -109,7 +109,7 @@ function App() {
   }
 
   function updateTodo(id, name) {
-    dispatch({ type: actions.UPDATE_TODO, payload: { id, name } });
+    dispatch({ type: actions.UPDATE_TODO, data: { id, name } });
 
     // setTodos((currentTodos) => {
     //   return currentTodos.map((todo) => {
